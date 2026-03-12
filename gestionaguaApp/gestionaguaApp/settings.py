@@ -37,6 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'boletas',
+    'cortes',
+    'lecturas',
+    'reportes',
+    'socios',
+    'usuarios',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -75,8 +82,16 @@ WSGI_APPLICATION = 'gestionaguaApp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # SQLite (desarrollo)
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        # PostgreSQL
+        'ENGINE':'django.db.backends.postgresql',
+        'NAME':'gestion_agua',
+        'USER':'postgres',
+        'PASSWORD':'postgres',
+        'HOST':'localhost',
+        'PORT':'5433'
     }
 }
 
