@@ -23,6 +23,6 @@ urlpatterns = [
     # path('cortes/', include('cortes.urls')),
     # path('lecturas/', include('lecturas.urls')),
     # path('reportes/', include('reportes.urls')),
-    # path('socios/', include('socios.urls')),
+    path('socios/', include('socios.urls')),
     # path('usuarios/', include('usuarios.urls')),
 ]
