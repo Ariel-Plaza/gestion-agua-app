@@ -7,6 +7,7 @@ class Socio(models.Model):
     rut = models.CharField(max_length=10, unique=True)
     nombre = models.CharField(max_length=30, null=False)
     apellido = models.CharField(max_length=30,null=False)
+    segundo_apellido = models.CharField(max_length=30, null=True, blank=True)
     telefono = models.CharField(max_length=15, null=True, blank=True)
     email = models.EmailField(unique=True, null=True, blank=True)
     ruta_id = models.ForeignKey(Ruta, on_delete=models.CASCADE)
