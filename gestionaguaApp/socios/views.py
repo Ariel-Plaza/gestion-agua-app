@@ -19,23 +19,24 @@ class ObtenerSocioNombreApellidos(APIView):
         nombre = request.query_params.get('nombre')
         apellido = request.query_params.get('apellido')
         segundo_apellido = request.query_params.get('segundo_apellido', None)  # opcional
-        if(nombre is None):
+        if(nombre is None or apellido is None):
                 return Response(
-                    {'error': 'debes ingresar un nombre'},
+                    {'error': 'debes ingresar un nombre y un apellido'},
                                 status=status.HTTP_404_NOT_FOUND)
-
+        # Filtra por nombre y apellido
         socio = Socio.objects.filter(nombre=nombre)
-        if(socio.count() > 1):
-                 socio = socio.filter(apellido = apellido)
-                 if(socio.count()>1):
-                      socio = socio.filter(segundo_apellido = segundo_apellido)
-                 
-        if(socio.exists()):
-                serializer = SocioSerializer(socio, many=True)
-                return Response(serializer.data)
-        else:
-                return Response(
-                    {'error': 'no existe un socio con el nombre buscado'},
-                                status=status.HTTP_404_NOT_FOUND)
-    
+        if socio.count() > 1:
+            socio = socio.filter(apellido=apellido)
+            if socio.count() > 1:
+                if segundo_apellido is None:
+                    return Response({'error': 'existen múltiples socios, agrega el segundo apellido'})
+                else:
+                    socio = socio.filter(segundo_apellido=segundo_apellido)
 
+        if socio.exists():
+            serializer = SocioSerializer(socio, many=True)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {'error': 'no existe un socio con el nombre buscado'},
+                status=status.HTTP_404_NOT_FOUND)
