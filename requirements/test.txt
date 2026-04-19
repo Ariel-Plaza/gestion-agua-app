@@ -1,0 +1,6 @@
+#base.txt
+-r base.txt
+pytest
+pytest-django
+coverage
+pytest-cov
