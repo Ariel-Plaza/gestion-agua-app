@@ -22,7 +22,7 @@ class ListaSocios(APIView):
         socios = Socio.objects.exclude(activo=False)
         serializer = SocioSerializer(socios, many=True)
         return Response(serializer.data)
-    
+
 class ObtenerSocioNombreApellidos(APIView):
     def get(self,request):
             
@@ -52,7 +52,7 @@ class ObtenerSocioNombreApellidos(APIView):
             
             serializer = SocioSerializer(socio, many=True)
             return Response(serializer.data)
-                
+
 class ActualizarSocio(APIView):
     def put(self,request,pk):
         try:
@@ -68,7 +68,7 @@ class ActualizarSocio(APIView):
         except Socio.DoesNotExist:
             return Response({'error':'Socio no encontrado'}, 
                             status=status.HTTP_404_NOT_FOUND)
-            
+
 
 class EliminarSocio(APIView):
     def delete(self,request,pk):
