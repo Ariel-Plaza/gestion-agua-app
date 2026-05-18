@@ -14,7 +14,7 @@ class Lectura(models.Model):
     periodo = models.CharField(max_length=7)  # formato: YYYY-MM
     lectura_actual = models.DecimalField(max_digits=10, decimal_places=2)
     m3_consumidos = models.DecimalField(max_digits=10, decimal_places=2)
-    origen = models.CharField(max_length=10, choices=ORIGEN_CHOICES)
+    origen = models.CharField(max_length=13, choices=ORIGEN_CHOICES)
     entregado_por = models.CharField(max_length=100, null=True, blank=True)
     registrado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     fecha_registro = models.DateField(auto_now_add=True)

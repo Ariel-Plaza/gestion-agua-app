@@ -18,7 +18,7 @@ class AgregarLectura(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class ListarLecturas(APIView):
+class ListaLecturas(APIView):
     def get(self, request):
         lecturas = Lectura.objects.all()
         serializer = LecturaSerializer(lecturas,context={'request': request}, many=True)
@@ -39,7 +39,7 @@ class ObtenerLecturaPorId(APIView):
         except Lectura.DoesNotExist:
             return Response({'error':'Lectura no encontradda'}, status=status.HTTP_404_NOT_FOUND)
 
-class EditarLectura(APIView):
+class ActualizarLectura(APIView):
     def patch(self,request,pk):
         try:
             actualizar =Lectura.objects.get(pk=pk)

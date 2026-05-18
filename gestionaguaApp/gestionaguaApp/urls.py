@@ -23,4 +23,6 @@ urlpatterns = [
     # path('reportes/', include('reportes.urls')),
     path('socios/', include('socios.urls')),
     # path('usuarios/', include('usuarios.urls')),
+    path('lecturas/', include('lecturas.urls')),
+    
 ]

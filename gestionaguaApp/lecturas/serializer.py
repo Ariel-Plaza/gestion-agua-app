@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Lectura
+from socios.models import Medidor
 
 class LecturaSerializer(serializers.ModelSerializer):
     # medidor = Medidor FK
@@ -27,5 +28,6 @@ class LecturaSerializer(serializers.ModelSerializer):
         else:
             m3_consumidos = validated_data['lectura_actual'] - lectura_anterior.lectura_actual
 
-    validated_data['m3_consumidos'] = m3_consumidos
-    return Lectura.objects.create(**validated_data)
+        validated_data['m3_consumidos'] = m3_consumidos
+        validated_data['registrado_por'] = self.context['request'].user
+        return Lectura.objects.create(**validated_data)
