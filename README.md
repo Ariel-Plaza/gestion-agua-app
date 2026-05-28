@@ -2,6 +2,8 @@
 
 API REST para la gestión de agua potable rural. Permite administrar socios, medidores, lecturas de consumo, boletas, cortes de servicio y reportes.
 
+**URL de producción:** https://gestion-agua-app-production.up.railway.app
+
 ## Stack tecnológico
 
 - **Python** 3.x
@@ -168,40 +170,30 @@ Los archivos quedan en `gestionaguaApp/staticfiles/`.
 
 ### 5. Levantar con Gunicorn
 
-Instala Gunicorn si no lo tienes:
+El proyecto se despliega en **Railway**. El comando de arranque está definido en el `Procfile`:
 
-```bash
-pip install gunicorn
+```
+web: cd gestionaguaApp && python manage.py migrate && gunicorn gestionaguaApp.wsgi:application --bind 0.0.0.0:8080
 ```
 
-Levanta el servidor WSGI:
+Railway ejecuta este comando automáticamente en cada despliegue.
 
-```bash
-cd gestionaguaApp
-DJANGO_SETTINGS_MODULE=gestionaguaApp.settings.production \
-    gunicorn gestionaguaApp.wsgi:application --bind 0.0.0.0:8000 --workers 3
-```
+**URL de producción:** https://gestion-agua-app-production.up.railway.app
 
-> En producción se recomienda poner Nginx como proxy inverso delante de Gunicorn.
+### Variables de entorno en Railway
 
-### 6. Nginx (ejemplo mínimo)
+Configura las siguientes variables en el panel de Railway (`Variables` del servicio):
 
-```nginx
-server {
-    listen 80;
-    server_name tudominio.cl;
-
-    location /static/ {
-        alias /ruta/al/proyecto/gestionaguaApp/staticfiles/;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
+| Variable | Valor |
+|---|---|
+| `DJANGO_SETTINGS_MODULE` | `gestionaguaApp.settings.production` |
+| `SECRET_KEY_PROD` | Clave secreta larga y aleatoria |
+| `DB_NAME` | Nombre de la base de datos |
+| `DB_USER` | Usuario de PostgreSQL |
+| `DB_PASSWORD` | Contraseña de PostgreSQL |
+| `DB_HOST` | Host del servicio PostgreSQL de Railway |
+| `DB_PORT` | Puerto del servicio PostgreSQL de Railway |
+| `ALLOWED_HOSTS` | `gestion-agua-app-production.up.railway.app` |
 
 ---
 

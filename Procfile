@@ -1,1 +1,1 @@
-web: gunicorn gestionaguaApp.wsgi:application --chdir gestionaguaApp --bind 0.0.0.0:8080
+web: cd gestionaguaApp && python manage.py migrate && gunicorn gestionaguaApp.wsgi:application --bind 0.0.0.0:8080
