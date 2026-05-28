@@ -1,0 +1,1 @@
+web: gunicorn gestionaguaApp.wsgi:application --chdir gestionaguaApp
