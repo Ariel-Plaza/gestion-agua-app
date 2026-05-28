@@ -1,1 +1,1 @@
-web: gunicorn gestionaguaApp.wsgi:application --chdir gestionaguaApp
+web: gunicorn gestionaguaApp.wsgi:application --chdir gestionaguaApp --bind 0.0.0.0:8080
