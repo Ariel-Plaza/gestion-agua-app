@@ -1,11 +1,21 @@
 import pytest
 from rest_framework.test import APIClient
 from socios.models import Ruta
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
 
 # Test creación socio
 @pytest.mark.django_db
 def test_create_socio():
     client = APIClient()
+
+    # Autenticacion
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+
     Ruta.objects.create(codigo="AP005")
     response = client.post(
         "/socios/agregar/",
@@ -31,6 +41,10 @@ def test_create_socio():
 @pytest.mark.django_db
 def test_get_socios():
     client = APIClient()
+    # Autenticacion
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+    
     response = client.get("/socios/")
     assert response.status_code == 200
 
@@ -38,6 +52,11 @@ def test_get_socios():
 @pytest.mark.django_db
 def test_update_socio():
     client = APIClient()
+    
+    # Autenticacion
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+    
     Ruta.objects.create(codigo="AP002")
     response = client.post(
         "/socios/agregar/",
@@ -73,6 +92,11 @@ def test_update_socio():
 @pytest.mark.django_db
 def test_delete_socio():
     client = APIClient()
+    
+    # Autenticacion
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+    
     Ruta.objects.create(codigo="AP001")
     response = client.post(
         "/socios/agregar/",
