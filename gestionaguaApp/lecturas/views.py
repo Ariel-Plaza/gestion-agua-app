@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Lectura
-from .serializer import LecturaSerializer
+from .serializer import LecturaSerializer, LecturaUpdateSerializer
 
 # Create your views here.
 class AgregarLectura(APIView):
@@ -42,16 +42,16 @@ class ObtenerLecturaPorId(APIView):
 class ActualizarLectura(APIView):
     def patch(self,request,pk):
         try:
-            actualizar =Lectura.objects.get(pk=pk)
-            serializer = LecturaSerializer(actualizar, data = request.data, context={'request': request}, partial=True)
+            lectura =Lectura.objects.get(pk=pk)
+            serializer = LecturaUpdateSerializer(lectura, data = request.data, partial=True)
+            
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(
-                    {'error': 'los datos no son validos'},
-                    status=status.HTTP_400_BAD_REQUEST)
+                    {'error': 'los datos no son validos', 'detalles': serializer.errors},
+    status=status.HTTP_400_BAD_REQUEST)
         except Lectura.DoesNotExist:
             return Response({'error':'Lectura no encontrada'}, 
                             status=status.HTTP_404_NOT_FOUND)
-
