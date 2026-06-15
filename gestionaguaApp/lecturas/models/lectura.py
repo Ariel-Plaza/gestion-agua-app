@@ -22,3 +22,20 @@ class Lectura(models.Model):
     class Meta:
         # Un medidor solo puede tener una lectura por periodo
         unique_together = ('medidor', 'periodo')
+        
+        
+    def save(self, *args, **kwargs):
+        lectura_anterior = Lectura.objects.filter(
+            medidor=self.medidor
+            ).exclude(
+                periodo=self.periodo
+            ).order_by('-periodo').first()
+        
+        if lectura_anterior :
+            self.m3_consumidos = self.lectura_actual - lectura_anterior.lectura_actual
+            if self.m3_consumidos < 0:
+                raise ValueError("La lectura actual no puede ser menor que la lectura anterior")
+
+        else:
+            self.m3_consumidos = 0
+        super().save(*args, **kwargs)

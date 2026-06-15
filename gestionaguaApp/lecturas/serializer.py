@@ -31,3 +31,16 @@ class LecturaSerializer(serializers.ModelSerializer):
         validated_data['m3_consumidos'] = m3_consumidos
         validated_data['registrado_por'] = self.context['request'].user
         return Lectura.objects.create(**validated_data)
+    
+class LecturaUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lectura
+        fields = ['lectura_actual']
+    
+    def validate_lectura_actual(self, value):
+        # 'self.instance' existe porque es un update (partial o no)
+        if self.instance and value < self.instance.lectura_actual:
+            raise serializers.ValidationError(
+                f"La nueva lectura ({value}) no puede ser menor que la actual ({self.instance.lectura_actual})"
+            )
+        return value
