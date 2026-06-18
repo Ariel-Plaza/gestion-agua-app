@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Tarifa
-from .models import Cobro
+from .models import Tarifa, Cobro, Pago
 
 
 class TarifaSerializer(serializers.ModelSerializer):
@@ -17,4 +16,10 @@ class TarifaUpdateSerializer(serializers.ModelSerializer):
 class CobroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cobro
+        fields = '__all__'
+
+
+class PagoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pago
         fields = '__all__'
