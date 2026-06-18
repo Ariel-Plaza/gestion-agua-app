@@ -1,8 +1,8 @@
 from rest_framework import APIView, status
 from rest_framework.response import Response
-from .models import Tarifa, Cobro
+from .models import Tarifa, Cobro, Pago
 from socios.models import Socio
-from .serializer import TarifaSerializer, TarifaUpdateSerializer, CobroSerializer
+from .serializer import TarifaSerializer, TarifaUpdateSerializer, CobroSerializer, PagoSerializer
 
 # Tarifa
 # Crear Tarifa
@@ -104,3 +104,25 @@ class DetalleCobro(APIView):
             return Response(serializer.data)
         except Cobro.DoesNotExist:
             return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+# Pago
+class RegistrarPago(APIView):
+    def post(self, request):
+        serializer = PagoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ListaPagosPorCobro(APIView):
+    def get(self, request, cobro_id):
+        try:
+            cobro = Cobro.objects.get(pk=cobro_id)
+        except Cobro.DoesNotExist:
+            return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        pagos = Pago.objects.filter(cobro=cobro)
+        if pagos.exists():
+            serializer = PagoSerializer(pagos, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'No hay pagos para este cobro'}, status=status.HTTP_404_NOT_FOUND)
