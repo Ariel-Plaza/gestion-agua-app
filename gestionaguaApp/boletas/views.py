@@ -1,8 +1,10 @@
 from rest_framework import APIView, status
 from rest_framework.response import Response
 from .models import Tarifa, Cobro
-from .serializer import TarifaSerializer, TarifaUpdateSerializer
+from socios.models import Socio
+from .serializer import TarifaSerializer, TarifaUpdateSerializer, CobroSerializer
 
+# Tarifa
 # Crear Tarifa
 class AgregarTarifa(APIView):
     def post(self, request):
@@ -13,7 +15,6 @@ class AgregarTarifa(APIView):
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 # Listar
 class ListaTarifas(APIView):
@@ -33,7 +34,6 @@ class MostrarTarifaPorAnno(APIView):
             return Response({'error':'Tarifa no encontrada'}, status= status.HTTP_404_NOT_FOUND)
 
 # Actualizar tarifa(monto)
-
 class ActualizarTarifa(APIView):
     def patch(self,request,pk):
         try:
@@ -69,3 +69,38 @@ class EliminarTarifa(APIView):
         tarifa.activo = False
         tarifa.save()
         return Response({'status':'Tarifa desactivado correctamente'},status=status.HTTP_200_OK)
+    
+#Cobros
+
+# Crear Cobro
+class GenerarCobro(APIView):
+    def post(self, request):
+        serializer = CobroSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Listar cobros por RUT
+class ListaCobrosPorSocio(APIView):
+    def get(self, request, rut):
+        try:
+            socio = Socio.objects.get(rut=rut)
+        except Socio.DoesNotExist:
+            return Response({'error': 'Socio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        cobros = Cobro.objects.filter(socio=socio)
+        if cobros.exists():
+            serializer = CobroSerializer(cobros, many=True)
+            return Response(serializer.data)
+        return Response({'error': 'No hay cobros para este socio'}, status=status.HTTP_404_NOT_FOUND)
+
+# Detalle cobro
+class DetalleCobro(APIView):
+    def get(self, request, pk):
+        try:
+            cobro = Cobro.objects.get(pk=pk)
+            serializer = CobroSerializer(cobro)
+            return Response(serializer.data)
+        except Cobro.DoesNotExist:
+            return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
