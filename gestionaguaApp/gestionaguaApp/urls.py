@@ -17,7 +17,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
     path('admin/', admin.site.urls),
-    # path('boletas/', include('boletas.urls')),
+    path('boletas/', include('boletas.urls')),
     # path('cortes/', include('cortes.urls')),
     # path('lecturas/', include('lecturas.urls')),
     # path('reportes/', include('reportes.urls')),
