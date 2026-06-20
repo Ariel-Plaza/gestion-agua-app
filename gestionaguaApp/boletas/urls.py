@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AgregarTarifa, ListaTarifas, MostrarTarifaPorAnno, ActualizarTarifa, EliminarTarifa, GenerarCobro, ListaCobrosPorSocio, DetalleCobro, RegistrarPagos, ListaPagosPorCobro
+from .views import AgregarTarifa, ListaTarifas, MostrarTarifaPorAnno, ActualizarTarifa, EliminarTarifa, GenerarCobro, ListaCobrosPorSocio, DetalleCobro, RegistrarPago, ListaPagosPorCobro
 
 urlpatterns = [
     path('agregar/', AgregarTarifa.as_view(), name='agregar-tarifa'),

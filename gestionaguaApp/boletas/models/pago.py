@@ -1,5 +1,5 @@
 from django.db import models
-
+from .cobro import Cobro
 class Pago(models.Model):
     FORMA_PAGO_CHOICES = [
         ('efectivo', 'Efectivo'),
