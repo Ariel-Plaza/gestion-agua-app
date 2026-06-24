@@ -18,6 +18,9 @@ class Lectura(models.Model):
     entregado_por = models.CharField(max_length=100, null=True, blank=True)
     registrado_por = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     fecha_registro = models.DateField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Lectura {self.periodo} - Medidor {self.medidor_id} ({self.m3_consumidos} m³)"
 
     class Meta:
         # Un medidor solo puede tener una lectura por periodo

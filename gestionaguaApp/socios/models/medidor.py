@@ -6,3 +6,6 @@ class Medidor(models.Model):
     numero_medidor = models.CharField(max_length=10 ,null=False, unique=True )
     estado_servicio = models.CharField(max_length=10 ,null=False)
     fecha_instalacion = models.DateField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"Medidor {self.numero_medidor} - {self.socio_id}"

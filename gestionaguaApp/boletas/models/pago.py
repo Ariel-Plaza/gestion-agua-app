@@ -10,3 +10,6 @@ class Pago(models.Model):
     monto_pagado = models.IntegerField()
     forma_pago = models.CharField(max_length=15, choices=FORMA_PAGO_CHOICES)
     fecha_pago = models.DateField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Pago ${self.monto_pagado} - Cobro N°{self.cobro_id} ({self.forma_pago})"
