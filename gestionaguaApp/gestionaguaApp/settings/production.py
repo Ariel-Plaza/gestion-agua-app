@@ -8,8 +8,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
 
-import dj_database_url
-
 DATABASES = {
     'default': dj_database_url.config(
         env='DATABASE_URL',
@@ -21,4 +19,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CORS_ALLOWED_ORIGINS = [
     "https://django-companion-app.lovable.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://gestion-agua-app-production.up.railway.app",
 ]
