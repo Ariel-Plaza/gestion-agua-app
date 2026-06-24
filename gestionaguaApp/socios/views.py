@@ -1,10 +1,12 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Socio
-from .serializer import SocioSerializer
+from .models import Socio, Ruta, Medidor
+from .serializer import SocioSerializer, RutaSerializer, MedidorSerializer
+
 
 # Create your views here.
+# -- Socios
 class AgregarSocio(APIView):
     def post(self, request):
         # deserializar JSON
@@ -80,3 +82,86 @@ class EliminarSocio(APIView):
         socio.activo = False
         socio.save()
         return Response({'status':'Socio desactivado correctamente'},status=status.HTTP_200_OK)
+
+#-- Rutas
+
+class ListaRutas(APIView):
+    def get(self, request):
+        rutas = Ruta.objects.all()
+        serializer = RutaSerializer(rutas, many=True)
+        return Response(serializer.data)
+
+class AgregarRuta(APIView):
+    def post(self, request):
+        serializer = RutaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ActualizarRuta(APIView):
+    def put(self, request, pk):
+        try:
+            ruta = Ruta.objects.get(pk=pk)
+        except Ruta.DoesNotExist:
+            return Response({'error': 'Ruta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = RutaSerializer(ruta, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EliminarRuta(APIView):
+    def delete(self, request, pk):
+        try:
+            ruta = Ruta.objects.get(pk=pk)
+        except Ruta.DoesNotExist:
+            return Response({'error': 'Ruta no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        ruta.delete()
+        return Response({'status': 'Ruta eliminada correctamente'}, status=status.HTTP_200_OK)
+
+#--- Medidores
+
+class ListaMedidores(APIView):
+    def get(self, request):
+        medidores = Medidor.objects.filter(estado_servicio__in=['activo', 'cortado'])
+        serializer = MedidorSerializer(medidores, many=True)
+        return Response(serializer.data)
+
+class AgregarMedidor(APIView):
+    def post(self, request):
+        serializer = MedidorSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ObtenerMedidorPorSocio(APIView):
+    def get(self, request, socio_id):
+        medidores = Medidor.objects.filter(socio_id=socio_id).exclude(estado_servicio='retirado')
+        if not medidores.exists():
+            return Response({'error': 'No se encontraron medidores para este socio'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MedidorSerializer(medidores, many=True)
+        return Response(serializer.data)
+
+class ActualizarMedidor(APIView):
+    def put(self, request, pk):
+        try:
+            medidor = Medidor.objects.get(pk=pk)
+        except Medidor.DoesNotExist:
+            return Response({'error': 'Medidor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MedidorSerializer(medidor, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EliminarMedidor(APIView):
+    def delete(self, request, pk):
+        try:
+            medidor = Medidor.objects.get(pk=pk)
+        except Medidor.DoesNotExist:
+            return Response({'error': 'Medidor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        medidor.estado_servicio = 'retirado'
+        medidor.save()
+        return Response({'status': 'Medidor retirado correctamente'}, status=status.HTTP_200_OK)
