@@ -1,1 +1,1 @@
-web: cd gestionaguaApp && python manage.py migrate && gunicorn gestionaguaApp.wsgi:application --bind 0.0.0.0:8080
+web: cd /app/gestionaguaApp && python manage.py collectstatic --noinput && python manage.py migrate && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
