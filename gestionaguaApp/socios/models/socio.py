@@ -15,3 +15,6 @@ class Socio(models.Model):
     subsidio = models.BooleanField(null=False, default=False)
     activo = models.BooleanField(null=False, default=True)
     fecha_registro = models.DateField(null=False, auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.nombre} {self.apellido} - N°{self.numero_socio}"

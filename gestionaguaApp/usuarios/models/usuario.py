@@ -17,3 +17,6 @@ class Usuario(AbstractUser):
         choices=ROL_CHOICES,
         default='socio'
     )
+    
+    def __str__(self):
+        return f"{self.get_full_name()} ({self.rol})"

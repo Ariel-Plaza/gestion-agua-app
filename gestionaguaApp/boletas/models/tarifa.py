@@ -7,3 +7,6 @@ class Tarifa(models.Model):
     vigente_hasta = models.DateField(null=True)
     costo_corte_reposicion = models.IntegerField(null=False)
     activo = models.BooleanField(null=False, default=True)
+    
+    def __str__(self):
+        return f"Tarifa vigente desde {self.vigente_desde} - ${self.cargo_fijo} fijo"
