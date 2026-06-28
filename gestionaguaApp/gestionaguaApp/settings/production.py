@@ -8,9 +8,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
 
+
 DATABASES = {
     'default': dj_database_url.config(
-        env='DATABASE_URL',
+        default=config('DATABASE_URL'),
         conn_max_age=600,
     )
 }
