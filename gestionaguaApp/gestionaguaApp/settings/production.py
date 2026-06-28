@@ -16,7 +16,7 @@ DATABASES = {
     )
 }
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'static'
 
 CORS_ALLOWED_ORIGINS = [
     "https://django-companion-app.lovable.app",
