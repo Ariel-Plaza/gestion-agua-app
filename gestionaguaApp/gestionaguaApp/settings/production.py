@@ -22,5 +22,5 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://gestion-agua-app-production.up.railway.app",
+    "http://146.235.242.0",
 ]
