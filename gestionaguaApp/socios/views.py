@@ -130,7 +130,15 @@ class ListaMedidores(APIView):
 
 class AgregarMedidor(APIView):
     def post(self, request):
-        serializer = MedidorSerializer(data=request.data)
+        data = request.data.copy()
+        rut = data.pop('rut', None)
+        if rut:
+            try:
+                socio = Socio.objects.get(rut=rut)
+                data['socio_id'] = socio.pk
+            except Socio.DoesNotExist:
+                return Response({'error': 'No existe un socio con ese RUT'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MedidorSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
