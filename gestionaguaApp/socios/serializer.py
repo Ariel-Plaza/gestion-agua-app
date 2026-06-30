@@ -21,6 +21,7 @@ class RutaSerializer(serializers.ModelSerializer):
 
 class MedidorSerializer(serializers.ModelSerializer):
     socio_id = serializers.PrimaryKeyRelatedField(queryset=Socio.objects.all())
+    estado_servicio = serializers.CharField(required=False, default='activo')
     class Meta:
         model = Medidor
         fields = '__all__'
