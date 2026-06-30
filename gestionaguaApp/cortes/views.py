@@ -8,6 +8,8 @@ from .serializers import CorteSerializer, CorteReposicionSerializer
 
 class RegistrarCorte(APIView):
     def post(self, request):
+        data = request.data.copy()
+        data['operador_corte'] = request.user.id
         serializer = CorteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
