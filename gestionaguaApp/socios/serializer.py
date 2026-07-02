@@ -22,6 +22,13 @@ class RutaSerializer(serializers.ModelSerializer):
 class MedidorSerializer(serializers.ModelSerializer):
     socio_id = serializers.PrimaryKeyRelatedField(queryset=Socio.objects.all())
     estado_servicio = serializers.CharField(required=False, default='activo')
+    socio_rut = serializers.CharField(source='socio_id.rut', read_only=True)       
+    socio_nombre = serializers.SerializerMethodField(read_only=True)                 
+
     class Meta:
         model = Medidor
         fields = '__all__'
+
+    def get_socio_nombre(self, obj):                                                 
+        s = obj.socio_id
+        return f"{s.nombre} {s.apellido} {s.s_apellido or ''}".strip()
