@@ -31,4 +31,4 @@ class MedidorSerializer(serializers.ModelSerializer):
 
     def get_socio_nombre(self, obj):                                                 
         s = obj.socio_id
-        return f"{s.nombre} {s.apellido} {s.s_apellido or ''}".strip()
+        return f"{s.nombre} {s.apellido} {s.segundo_apellido or ''}".strip()
