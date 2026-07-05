@@ -21,8 +21,8 @@ API REST para la gestión de agua potable rural. Permite administrar socios, med
 | `usuarios` | Usuario personalizado con roles (administrador, operador, funcionario, socio) |
 | `socios` | Socios, rutas y medidores |
 | `lecturas` | Registro de lecturas de consumo por período |
-| `boletas` | Generación de boletas (en desarrollo) |
-| `cortes` | Cortes de servicio (en desarrollo) |
+| `boletas` | Tarifas, generación de cobros y registro de pagos |
+| `cortes` | Registro de cortes de servicio y reposición |
 | `reportes` | Reportes (en desarrollo) |
 
 ---
@@ -307,8 +307,8 @@ gestionaguaProject/
     ├── usuarios/               # Modelo de usuario personalizado
     ├── socios/                 # Socios, medidores y rutas
     ├── lecturas/               # Lecturas de consumo
-    ├── boletas/                # (en desarrollo)
-    ├── cortes/                 # (en desarrollo)
+    ├── boletas/                # Tarifas, cobros y pagos
+    ├── cortes/                 # Cortes de servicio y reposición
     └── reportes/               # (en desarrollo)
 ```
 
