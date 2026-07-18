@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from .models import Socio, Ruta, Medidor
 from .serializer import SocioSerializer, RutaSerializer, MedidorSerializer
 
+# Normalizar el rut recibido en el formato que acepta la BD ########-# (sin puntos, sin espacios, con guion)
+def normalizar_rut(rut):
+    return rut.replace('.', '').replace(' ', '').strip().upper()
 
-# Create your views here.
 # -- Socios
 class AgregarSocio(APIView):
     def post(self, request):
@@ -27,10 +29,21 @@ class ListaSocios(APIView):
 
 class ObtenerSocioNombreApellidos(APIView):
     def get(self,request):
-            
+        # busqueda por rut
+        rut = request.query_params.get('rut')
+        if rut:
+            socio = Socio.objects.filter(
+                rut = normalizar_rut(rut), activo=True)
+            if not socio.exists():
+                return Response(
+                    {'error': 'no existe un socio con el RUT buscado'},
+                    status=status.HTTP_404_NOT_FOUND)
+            serializer = SocioSerializer(socio, many=True)
+            return Response(serializer.data)
+        # busqueda por nombre y apellidos
         nombre = request.query_params.get('nombre')
         apellido = request.query_params.get('apellido')
-        s_apellido = request.query_params.get('s_apellido', None) # opcional
+        s_apellido = request.query_params.get('s_apellido', None)
         
         if(nombre is None or apellido is None):
                 return Response(
@@ -46,7 +59,7 @@ class ObtenerSocioNombreApellidos(APIView):
                     return Response({'error': 'existen múltiples socios, agrega el segundo apellido'})
                 else:
                     socio = socio.filter(segundo_apellido = s_apellido, activo= True)
-            # Si soy no existe
+            # Si socio no existe
             if not socio.exists():
                 return Response(
                     {'error': 'no existe un socio con el nombre buscado'},
@@ -124,7 +137,20 @@ class EliminarRuta(APIView):
 
 class ListaMedidores(APIView):
     def get(self, request):
-        medidores = Medidor.objects.filter(estado_servicio__in=['activo', 'cortado'])
+        medidores = Medidor.objects.exclude(estado_servicio='retirado')
+        
+        rut = request.query_params.get('rut')
+        if rut: 
+            try:
+                socio = Socio.objects.get(rut=normalizar_rut(rut))
+            except Socio.DoesNotExist:
+                return Response(
+                    {'error': 'no existe un socio con el RUT buscado'},
+                    status = status.HTTP_404_NOT_FOUND)
+            medidores = medidores.filter(
+                socio_id = socio.pk
+            )
+        
         serializer = MedidorSerializer(medidores, many=True)
         return Response(serializer.data)
 
