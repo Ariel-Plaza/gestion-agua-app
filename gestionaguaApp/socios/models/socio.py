@@ -1,6 +1,8 @@
 from django.db import models
 from .ruta import Ruta
 
+from django.utils import timezone
+
 class Socio(models.Model):
     numero_socio = models.IntegerField(unique=True)
     # agregar validar de rut segun el -k
@@ -14,7 +16,7 @@ class Socio(models.Model):
     referencia_direccion = models.CharField(max_length=500)
     subsidio = models.BooleanField(null=False, default=False)
     activo = models.BooleanField(null=False, default=True)
-    fecha_registro = models.DateField(null=False, auto_now_add=True)
+    fecha_registro = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
         return f"{self.nombre} {self.apellido} - N°{self.numero_socio}"
