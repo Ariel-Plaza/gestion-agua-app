@@ -9,6 +9,7 @@ class SocioSerializer(serializers.ModelSerializer):
         slug_field='codigo',        
         queryset=Ruta.objects.all() # necesario para escritura
     )
+    fecha_registro = serializer.DateField()
 
     class Meta:
         model = Socio
