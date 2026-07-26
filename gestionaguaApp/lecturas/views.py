@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Lectura
 from .serializer import LecturaSerializer, LecturaUpdateSerializer
+from socios.models import Socio, Medidor
+from socios.views import normalizar_rut
 
 # Create your views here.
 class AgregarLectura(APIView):
@@ -20,7 +22,22 @@ class AgregarLectura(APIView):
 
 class ListaLecturas(APIView):
     def get(self, request):
-        lecturas = Lectura.objects.all()
+        rut = request.query_params.get('rut')
+        if rut:
+            try:
+                socio = Socio.objects.get(rut=normalizar_rut(rut))
+            except Socio.DoesNotExist:
+                return Response(
+                    {'error': 'no existe un socio con el RUT buscado'},
+                    status=status.HTTP_404_NOT_FOUND)
+            medidores = Medidor.objects.filter(socio_id=socio.pk)
+            medidor_ids = [medidor.pk for medidor in medidores]
+            lecturas = [
+                lectura for lectura in Lectura.objects.all()
+                if lectura.medidor_id in medidor_ids
+            ]
+        else:
+            lecturas = Lectura.objects.all()
         serializer = LecturaSerializer(lecturas,context={'request': request}, many=True)
         return Response(serializer.data)
 
