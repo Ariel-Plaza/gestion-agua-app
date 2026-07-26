@@ -16,7 +16,7 @@ class Socio(models.Model):
     referencia_direccion = models.CharField(max_length=500)
     subsidio = models.BooleanField(null=False, default=False)
     activo = models.BooleanField(null=False, default=True)
-    fecha_registro = models.DateTimeField(default=timezone.now)
+    fecha_registro = models.DateField(default=timezone.now)
     
     def __str__(self):
         return f"{self.nombre} {self.apellido} - N°{self.numero_socio}"
