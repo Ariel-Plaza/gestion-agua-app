@@ -13,10 +13,13 @@ class AgregarLectura(APIView):
         # context pasamos el usuario autenticado si corresponde
         serializer = LecturaSerializer(data = request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except ValueError as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, 
+            return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -63,7 +66,10 @@ class ActualizarLectura(APIView):
             serializer = LecturaUpdateSerializer(lectura, data = request.data, partial=True)
             
             if serializer.is_valid():
-                serializer.save()
+                try:
+                    serializer.save()
+                except ValueError as e:
+                    return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(
