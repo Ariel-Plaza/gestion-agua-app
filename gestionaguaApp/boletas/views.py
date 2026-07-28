@@ -1,8 +1,10 @@
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Tarifa, Cobro, Pago
 from socios.models import Socio
+from cortes.models import Cortes
 from .serializer import TarifaSerializer, TarifaUpdateSerializer, CobroSerializer, PagoSerializer
 
 
@@ -125,7 +127,17 @@ class RegistrarPago(APIView):
         # en el management command de generación, no aquí
         serializer = PagoSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            pago = serializer.save()
+
+            # Si este pago saldó por completo el cobro que originó un corte activo,
+            # se repone el servicio automáticamente
+            if pago.cobro.saldo_pendiente == 0:
+                corte = Cortes.objects.filter(cobro_id=pago.cobro_id, estado='cortado').first()
+                if corte:
+                    corte.estado = 'repuesto'
+                    corte.fecha_reposicion = timezone.now().date()
+                    corte.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
