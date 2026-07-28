@@ -144,3 +144,69 @@ def test_generar_cobros_agrega_cargo_reposicion_y_no_lo_duplica():
     call_command('generar_cobros', periodo='2025-02')
     cobro_siguiente = Cobro.objects.get(socio_id=socio.pk, periodo='2025-02')
     assert cobro_siguiente.corte_reposicion is None
+
+
+@pytest.mark.django_db
+def test_generar_cobros_genera_corte_por_tres_meses_impagos():
+    user = User.objects.create_user(username='operario', password='test1234')
+    ruta = Ruta.objects.create(codigo='G06')
+    socio = crear_socio(6, '66666666-6', ruta)
+    medidor = Medidor.objects.create(socio_id=socio, numero_medidor='MED-G06', estado_servicio='activo')
+    tarifa = crear_tarifa()
+
+    lectura_nov = Lectura.objects.create(
+        medidor=medidor, periodo='2024-11', lectura_actual=0,
+        m3_consumidos=0, origen='operario', registrado_por=user
+    )
+    Cobro.objects.create(
+        socio=socio, lectura=lectura_nov, tarifa=tarifa, periodo='2024-11',
+        cargo_fijo=6000, costo_m3_consumido=0, total=6000,
+        fecha_vencimiento=date(2025, 1, 1)
+    )
+    lectura_dic = Lectura.objects.create(
+        medidor=medidor, periodo='2024-12', lectura_actual=2,
+        m3_consumidos=2, origen='operario', registrado_por=user
+    )
+    Cobro.objects.create(
+        socio=socio, lectura=lectura_dic, tarifa=tarifa, periodo='2024-12',
+        cargo_fijo=6000, costo_m3_consumido=2000, total=8000,
+        fecha_vencimiento=date(2025, 1, 1)
+    )
+    Lectura.objects.create(
+        medidor=medidor, periodo='2025-01', lectura_actual=2,
+        m3_consumidos=0, origen='operario', registrado_por=user
+    )
+
+    call_command('generar_cobros', periodo='2025-01')
+
+    # Suma: 6000 (nov) + 8000 (dic) + 6000 (ene, generado por el comando) = 20000 > 18000
+    assert Cortes.objects.filter(socio_id=socio.pk, estado='cortado').exists()
+
+
+@pytest.mark.django_db
+def test_generar_cobros_no_corta_si_hubo_abono():
+    user = User.objects.create_user(username='operario', password='test1234')
+    ruta = Ruta.objects.create(codigo='G07')
+    socio = crear_socio(7, '77777777-7', ruta)
+    medidor = Medidor.objects.create(socio_id=socio, numero_medidor='MED-G07', estado_servicio='activo')
+    tarifa = crear_tarifa()
+
+    for periodo in ['2024-11', '2024-12']:
+        lectura = Lectura.objects.create(
+            medidor=medidor, periodo=periodo, lectura_actual=0,
+            m3_consumidos=0, origen='operario', registrado_por=user
+        )
+        cobro = Cobro.objects.create(
+            socio=socio, lectura=lectura, tarifa=tarifa, periodo=periodo,
+            cargo_fijo=6000, costo_m3_consumido=0, total=6000,
+            fecha_vencimiento=date(2025, 1, 1)
+        )
+    Pago.objects.create(cobro=cobro, monto_pagado=1000, forma_pago='efectivo', fecha_pago=date(2024, 12, 15))
+    Lectura.objects.create(
+        medidor=medidor, periodo='2025-01', lectura_actual=0,
+        m3_consumidos=0, origen='operario', registrado_por=user
+    )
+
+    call_command('generar_cobros', periodo='2025-01')
+
+    assert not Cortes.objects.filter(socio_id=socio.pk).exists()

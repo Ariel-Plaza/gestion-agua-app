@@ -6,8 +6,12 @@ from django.db import IntegrityError
 
 from socios.models import Socio, Medidor
 from lecturas.models import Lectura
+from usuarios.models import Usuario
 from boletas.models import Tarifa, Cobro
 from cortes.models import Cortes
+
+UMBRAL_CORTE = 18000
+MESES_CONSECUTIVOS_CORTE = 3
 
 
 def periodo_actual():
@@ -24,6 +28,15 @@ def periodo_siguiente(periodo):
     return f"{anio:04d}-{mes:02d}"
 
 
+def periodo_anterior(periodo):
+    anio, mes = (int(p) for p in periodo.split('-'))
+    mes -= 1
+    if mes < 1:
+        mes = 12
+        anio -= 1
+    return f"{anio:04d}-{mes:02d}"
+
+
 def fecha_vencimiento_para(periodo):
     # Vence el último día del mes siguiente al periodo facturado
     siguiente = periodo_siguiente(periodo)
@@ -33,7 +46,7 @@ def fecha_vencimiento_para(periodo):
 
 
 class Command(BaseCommand):
-    help = 'Genera los cobros mensuales del período.'
+    help = 'Genera los cobros mensuales del período y evalúa cortes de servicio.'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -44,6 +57,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         periodo = options['periodo'] or periodo_actual()
         self.stdout.write(f'Generando cobros para el período {periodo}...')
+
+        operador_sistema = self.obtener_operador_sistema()
 
         cobros_generados = 0
         cobros_omitidos = 0
@@ -119,6 +134,18 @@ class Command(BaseCommand):
 
         self.stdout.write(f'Cobros generados: {cobros_generados}. Omitidos: {cobros_omitidos}.')
 
+        cortes_generados = self.evaluar_cortes(operador_sistema)
+        self.stdout.write(f'Cortes generados: {cortes_generados}.')
+
+    def obtener_operador_sistema(self):
+        operador, creado = Usuario.objects.get_or_create(
+            username='sistema', defaults={'rol': 'administrador'}
+        )
+        if creado:
+            operador.set_unusable_password()
+            operador.save()
+        return operador
+
     def siguiente_numero_boleta(self, anio):
         cobros_con_numero = Cobro.objects.exclude(numero_boleta=None)
         prefijo = f"{anio}-"
@@ -128,3 +155,43 @@ class Command(BaseCommand):
             if c.numero_boleta.startswith(prefijo)
         ]
         return (max(numeros) + 1) if numeros else 1
+
+    def evaluar_cortes(self, operador_sistema):
+        cortes_generados = 0
+
+        for socio in Socio.objects.filter(activo=True):
+            if Cortes.objects.filter(socio_id=socio.pk, estado='cortado').exists():
+                continue
+
+            ultimos_cobros = list(Cobro.objects.filter(socio_id=socio.pk)[:MESES_CONSECUTIVOS_CORTE])
+            if len(ultimos_cobros) < MESES_CONSECUTIVOS_CORTE:
+                continue
+
+            # Cobro.Meta.ordering = ['-periodo'], por lo que vienen del más reciente al más antiguo
+            son_consecutivos = all(
+                ultimos_cobros[i + 1].periodo == periodo_anterior(ultimos_cobros[i].periodo)
+                for i in range(len(ultimos_cobros) - 1)
+            )
+            if not son_consecutivos:
+                continue
+
+            sin_ningun_abono = all(c.total_pagado == 0 for c in ultimos_cobros)
+            if not sin_ningun_abono:
+                continue
+
+            saldo_periodo = sum(c.total for c in ultimos_cobros)
+            if saldo_periodo <= UMBRAL_CORTE:
+                continue
+
+            cobro_mas_reciente = ultimos_cobros[0]
+            Cortes.objects.create(
+                socio=socio,
+                cobro=cobro_mas_reciente,
+                fecha_corte=date.today(),
+                lectura_corte=round(cobro_mas_reciente.lectura.lectura_actual),
+                operador_corte=operador_sistema,
+                estado='cortado',
+            )
+            cortes_generados += 1
+
+        return cortes_generados
