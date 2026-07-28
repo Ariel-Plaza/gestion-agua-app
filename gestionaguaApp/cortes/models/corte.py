@@ -23,6 +23,10 @@ class Cortes(models.Model):
 
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='cortado')
 
+    # Se marca True cuando el cargo de reposición ($50.000) ya fue agregado
+    # a un Cobro por el cron de generar_cobros. Evita cobrarlo más de una vez.
+    costo_reposicion_facturado = models.BooleanField(default=False)
+
     class Meta:
         ordering = ['-fecha_corte']
 
