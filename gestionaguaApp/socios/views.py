@@ -184,7 +184,17 @@ class ActualizarMedidor(APIView):
             medidor = Medidor.objects.get(pk=pk)
         except Medidor.DoesNotExist:
             return Response({'error': 'Medidor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = MedidorSerializer(medidor, data=request.data, partial=True)
+
+        data = request.data.copy()
+        rut = data.pop('rut', None)
+        if rut:
+            try:
+                socio = Socio.objects.get(rut=rut)
+                data['socio_id'] = socio.pk
+            except Socio.DoesNotExist:
+                return Response({'error': 'No existe un socio con ese RUT'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MedidorSerializer(medidor, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

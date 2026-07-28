@@ -1,6 +1,6 @@
 import pytest
 from rest_framework.test import APIClient
-from socios.models import Ruta
+from socios.models import Ruta, Socio, Medidor
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -123,3 +123,124 @@ def test_delete_socio():
         f"/socios/eliminar/{socio_id}/",
     )
     assert response.status_code == 200
+
+
+# Test agregar medidor resolviendo rut
+@pytest.mark.django_db
+def test_agregar_medidor_resuelve_rut():
+    client = APIClient()
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+
+    ruta = Ruta.objects.create(codigo='AP010')
+    socio = Socio.objects.create(
+        numero_socio=10, rut='10101010-1', nombre='Ana', apellido='Soto',
+        ruta_id=ruta, referencia_direccion='Camino real', activo=True
+    )
+    response = client.post(
+        "/socios/medidores/agregar/",
+        format="json",
+        data={
+            "numero_medidor": "MED-100",
+            "rut": "10101010-1",
+        },
+    )
+    assert response.status_code == 201, response.data
+    assert response.data["socio_id"] == socio.pk
+
+
+# Test agregar medidor con rut inexistente
+@pytest.mark.django_db
+def test_agregar_medidor_rut_inexistente():
+    client = APIClient()
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+
+    response = client.post(
+        "/socios/medidores/agregar/",
+        format="json",
+        data={
+            "numero_medidor": "MED-101",
+            "rut": "99999999-9",
+        },
+    )
+    assert response.status_code == 404
+
+
+# Test reasignar medidor a otro socio por rut (Bug 3)
+@pytest.mark.django_db
+def test_actualizar_medidor_reasigna_socio_por_rut():
+    client = APIClient()
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+
+    ruta = Ruta.objects.create(codigo='AP011')
+    socio_original = Socio.objects.create(
+        numero_socio=11, rut='11111111-9', nombre='Carlos', apellido='Diaz',
+        ruta_id=ruta, referencia_direccion='Camino real 2', activo=True
+    )
+    socio_nuevo = Socio.objects.create(
+        numero_socio=12, rut='12121212-1', nombre='Marta', apellido='Diaz',
+        ruta_id=ruta, referencia_direccion='Camino real 2', activo=True
+    )
+    medidor = Medidor.objects.create(
+        socio_id=socio_original, numero_medidor='MED-102', estado_servicio='activo'
+    )
+
+    response = client.put(
+        f"/socios/medidores/actualizar/{medidor.pk}/",
+        format="json",
+        data={"rut": "12121212-1"},
+    )
+    assert response.status_code == 200, response.data
+    assert response.data["socio_id"] == socio_nuevo.pk
+
+
+# Test actualizar medidor sin rut no cambia el socio asignado
+@pytest.mark.django_db
+def test_actualizar_medidor_sin_rut_mantiene_socio():
+    client = APIClient()
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+
+    ruta = Ruta.objects.create(codigo='AP012')
+    socio = Socio.objects.create(
+        numero_socio=13, rut='13131313-1', nombre='Luis', apellido='Rojas',
+        ruta_id=ruta, referencia_direccion='Camino real 3', activo=True
+    )
+    medidor = Medidor.objects.create(
+        socio_id=socio, numero_medidor='MED-103', estado_servicio='activo'
+    )
+
+    response = client.put(
+        f"/socios/medidores/actualizar/{medidor.pk}/",
+        format="json",
+        data={"estado_servicio": "cortado"},
+    )
+    assert response.status_code == 200, response.data
+    assert response.data["socio_id"] == socio.pk
+    assert response.data["estado_servicio"] == "cortado"
+
+
+# Test reasignar medidor con rut inexistente
+@pytest.mark.django_db
+def test_actualizar_medidor_rut_inexistente():
+    client = APIClient()
+    user = User.objects.create_user(username='test', password='test1234')
+    client.force_authenticate(user=user)
+
+    ruta = Ruta.objects.create(codigo='AP013')
+    socio = Socio.objects.create(
+        numero_socio=14, rut='14141414-1', nombre='Eva', apellido='Vera',
+        ruta_id=ruta, referencia_direccion='Camino real 4', activo=True
+    )
+    medidor = Medidor.objects.create(
+        socio_id=socio, numero_medidor='MED-104', estado_servicio='activo'
+    )
+
+    response = client.put(
+        f"/socios/medidores/actualizar/{medidor.pk}/",
+        format="json",
+        data={"rut": "99999999-9"},
+    )
+    assert response.status_code == 404
