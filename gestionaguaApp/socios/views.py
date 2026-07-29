@@ -5,6 +5,7 @@ from .models import Socio, Ruta, Medidor
 from .serializer import SocioSerializer, RutaSerializer, MedidorSerializer
 
 # Normalizar el rut recibido en el formato que acepta la BD ########-# (sin puntos, sin espacios, con guion)
+# aplicar verificacion de rut valido.
 def normalizar_rut(rut):
     return rut.replace('.', '').replace(' ', '').strip().upper()
 
@@ -26,6 +27,7 @@ class ListaSocios(APIView):
         socios = Socio.objects.exclude(activo=False)
         serializer = SocioSerializer(socios, many=True)
         return Response(serializer.data)
+    # manejar el error si no recibe informacion
 
 class ObtenerSocioNombreApellidos(APIView):
     def get(self,request):
