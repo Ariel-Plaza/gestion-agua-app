@@ -15,34 +15,41 @@ def formato_clp(valor):
     return f"{int(valor):,}".replace(',', '.')
 
 
+def calcular_deudores():
+    # Un socio entra al listado si tiene algún Cobro vencido y/o un Corte activo
+    cobros_por_socio = {}
+    for cobro in Cobro.objects.all():
+        cobros_por_socio.setdefault(cobro.socio_id, []).append(cobro)
+
+    cortes_activos = set(
+        corte.socio_id for corte in Cortes.objects.filter(estado='cortado')
+    )
+
+    filas = []
+    total_adeudado = 0
+    for socio_id, cobros in cobros_por_socio.items():
+        vencidos = [c for c in cobros if c.estado == 'vencido']
+        corte_activo = socio_id in cortes_activos
+        if not vencidos and not corte_activo:
+            continue
+
+        saldo = sum(c.saldo_pendiente for c in cobros if c.saldo_pendiente > 0)
+        total_adeudado += saldo
+        filas.append({
+            'socio': cobros[0].socio,
+            'saldo': saldo,
+            'saldo_fmt': formato_clp(saldo),
+            'meses_atraso': len(vencidos),
+            'corte_activo': corte_activo,
+        })
+
+    filas.sort(key=lambda f: f['socio'].rut)
+    return filas, total_adeudado
+
+
 class ReporteDeudores(APIView):
     def get(self, request):
-        cobros_por_socio = {}
-        for cobro in Cobro.objects.all():
-            cobros_por_socio.setdefault(cobro.socio_id, []).append(cobro)
-
-        cortes_activos = set(
-            corte.socio_id for corte in Cortes.objects.filter(estado='cortado')
-        )
-
-        filas = []
-        total_adeudado = 0
-        for socio_id, cobros in cobros_por_socio.items():
-            vencidos = [c for c in cobros if c.estado == 'vencido']
-            corte_activo = socio_id in cortes_activos
-            if not vencidos and not corte_activo:
-                continue
-
-            saldo = sum(c.saldo_pendiente for c in cobros if c.saldo_pendiente > 0)
-            total_adeudado += saldo
-            filas.append({
-                'socio': cobros[0].socio,
-                'saldo_fmt': formato_clp(saldo),
-                'meses_atraso': len(vencidos),
-                'corte_activo': corte_activo,
-            })
-
-        filas.sort(key=lambda f: f['socio'].rut)
+        filas, total_adeudado = calcular_deudores()
 
         contexto = {
             'filas': filas,
