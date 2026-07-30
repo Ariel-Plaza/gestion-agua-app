@@ -1,4 +1,7 @@
 from django.utils import timezone
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -6,6 +9,11 @@ from .models import Tarifa, Cobro, Pago
 from socios.models import Socio
 from cortes.models import Cortes
 from .serializer import TarifaSerializer, TarifaUpdateSerializer, CobroSerializer, PagoSerializer
+
+
+def formato_clp(valor):
+    # Separador de miles con punto, como se usa en Chile ($16.000)
+    return f"{int(valor):,}".replace(',', '.')
 
 
 # ─── TARIFA ───────────────────────────────────────────────────────────────────
@@ -116,6 +124,30 @@ class DetalleCobro(APIView):
             return Response(serializer.data)
         except Cobro.DoesNotExist:
             return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class CuponCobro(APIView):
+    def get(self, request, pk):
+        try:
+            cobro = Cobro.objects.get(pk=pk)
+        except Cobro.DoesNotExist:
+            return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        contexto = {
+            'cobro': cobro,
+            'socio': cobro.socio,
+            'cargo_fijo_fmt': formato_clp(cobro.cargo_fijo),
+            'costo_m3_fmt': formato_clp(cobro.costo_m3_consumido),
+            'corte_reposicion_fmt': formato_clp(cobro.corte_reposicion) if cobro.corte_reposicion else None,
+            'total_fmt': formato_clp(cobro.total),
+        }
+        html = render_to_string('boletas/cupon.html', contexto)
+        pdf = HTML(string=html).write_pdf()
+
+        nombre_archivo = f"cupon-{cobro.numero_boleta or cobro.id}.pdf"
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+        return response
 
 
 # ─── PAGO ─────────────────────────────────────────────────────────────────────

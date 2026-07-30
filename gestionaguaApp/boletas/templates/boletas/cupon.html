@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A5; margin: 1.5cm; }
+  body { font-family: sans-serif; font-size: 12px; color: #222; }
+  h1 { font-size: 18px; margin: 0; }
+  .subtitulo { color: #666; margin: 2px 0 0; }
+  .datos { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  .datos td { padding: 3px 0; }
+  .datos td.etiqueta { color: #666; width: 45%; }
+  .monto-total { font-size: 24px; font-weight: bold; margin: 20px 0 8px; }
+  .detalle { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .detalle th { text-align: left; border-bottom: 1px solid #999; padding-bottom: 4px; font-size: 11px; color: #666; }
+  .detalle td { padding: 4px 0; }
+  .detalle td.monto { text-align: right; }
+  .detalle tr.total td { font-weight: bold; border-top: 1px solid #999; padding-top: 8px; }
+  .footer { margin-top: 28px; font-size: 10px; color: #888; }
+</style>
+</head>
+<body>
+  <h1>Cupón de pago</h1>
+  <p class="subtitulo">Comité de Agua Potable Rural</p>
+
+  <table class="datos">
+    <tr><td class="etiqueta">N° de boleta</td><td>{{ cobro.numero_boleta|default:"—" }}</td></tr>
+    <tr><td class="etiqueta">Socio</td><td>{{ socio.nombre }} {{ socio.apellido }} {{ socio.segundo_apellido|default:"" }}</td></tr>
+    <tr><td class="etiqueta">RUT</td><td>{{ socio.rut }}</td></tr>
+    <tr><td class="etiqueta">Período facturado</td><td>{{ cobro.periodo }}</td></tr>
+    <tr><td class="etiqueta">Fecha de vencimiento</td><td>{{ cobro.fecha_vencimiento|date:"d-m-Y" }}</td></tr>
+  </table>
+
+  <div class="monto-total">Total a pagar: ${{ total_fmt }}</div>
+
+  <table class="detalle">
+    <tr><th>Detalle</th><th style="text-align:right">Monto</th></tr>
+    <tr><td>Cargo fijo</td><td class="monto">${{ cargo_fijo_fmt }}</td></tr>
+    <tr><td>Consumo de agua</td><td class="monto">${{ costo_m3_fmt }}</td></tr>
+    {% if corte_reposicion_fmt %}
+    <tr><td>Reposición por corte</td><td class="monto">${{ corte_reposicion_fmt }}</td></tr>
+    {% endif %}
+    <tr class="total"><td>Total</td><td class="monto">${{ total_fmt }}</td></tr>
+  </table>
+
+  <p class="footer">Este cupón no reemplaza la boleta electrónica del SII. Conserve este documento hasta su fecha de vencimiento.</p>
+</body>
+</html>
