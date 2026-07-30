@@ -35,12 +35,21 @@ def validar_rut(rut):
 class AgregarSocio(APIView):
     def post(self, request):
         # deserializar JSON
-        serializer = SocioSerializer(data = request.data)
+        data = request.data.copy()
+        rut = data.get('rut')
+        if rut:
+            rut_normalizado = normalizar_rut(rut)
+            if not validar_rut(rut_normalizado):
+                return Response(
+                    {'error': 'El RUT ingresado no es válido'},
+                    status=status.HTTP_400_BAD_REQUEST)
+            data['rut'] = rut_normalizado
+        serializer = SocioSerializer(data = data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, 
+            return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
             # return Response(exception=True,status=status.HTTP_404_NOT_FOUND,data=True)
 
@@ -105,7 +114,16 @@ class ActualizarSocio(APIView):
     def put(self,request,pk):
         try:
             actualizar =Socio.objects.get(pk=pk)
-            serializer = SocioSerializer(actualizar, data = request.data, partial=True)
+            data = request.data.copy()
+            rut = data.get('rut')
+            if rut:
+                rut_normalizado = normalizar_rut(rut)
+                if not validar_rut(rut_normalizado):
+                    return Response(
+                        {'error': 'El RUT ingresado no es válido'},
+                        status=status.HTTP_400_BAD_REQUEST)
+                data['rut'] = rut_normalizado
+            serializer = SocioSerializer(actualizar, data = data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
