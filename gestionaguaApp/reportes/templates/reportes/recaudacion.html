@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A5; margin: 1.5cm; }
+  body { font-family: sans-serif; font-size: 12px; color: #222; }
+  h1 { font-size: 18px; margin: 0; }
+  .subtitulo { color: #666; margin: 2px 0 16px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  td { padding: 6px 0; }
+  td.etiqueta { color: #666; width: 60%; }
+  td.monto { text-align: right; font-weight: bold; }
+  .destacado td { font-size: 15px; border-top: 1px solid #999; padding-top: 10px; }
+</style>
+</head>
+<body>
+  <h1>Resumen de recaudación</h1>
+  <p class="subtitulo">Período {{ periodo }} — {{ cantidad_cobros }} cobro{{ cantidad_cobros|pluralize }} emitido{{ cantidad_cobros|pluralize }}</p>
+
+  <table>
+    <tr><td class="etiqueta">Total facturado</td><td class="monto">${{ total_facturado_fmt }}</td></tr>
+    <tr><td class="etiqueta">Total efectivamente cobrado</td><td class="monto">${{ total_cobrado_fmt }}</td></tr>
+    <tr class="destacado"><td class="etiqueta">Saldo pendiente</td><td class="monto">${{ total_pendiente_fmt }}</td></tr>
+  </table>
+
+  <p class="subtitulo">Porcentaje cobrado: {{ porcentaje_cobrado }}%</p>
+</body>
+</html>
