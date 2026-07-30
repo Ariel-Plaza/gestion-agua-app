@@ -135,7 +135,7 @@ class RegistrarPago(APIView):
                 corte = Cortes.objects.filter(cobro_id=pago.cobro_id, estado='cortado').first()
                 if corte:
                     corte.estado = 'repuesto'
-                    corte.fecha_reposicion = timezone.now().date()
+                    corte.fecha_reposicion = timezone.localdate()
                     corte.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)

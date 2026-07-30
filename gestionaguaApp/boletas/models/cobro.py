@@ -46,6 +46,6 @@ class Cobro(models.Model):
     def estado(self):
         if self.saldo_pendiente == 0:
             return 'pagado'
-        elif self.fecha_vencimiento < timezone.now().date():
+        elif self.fecha_vencimiento < timezone.localdate():
             return 'vencido'
         return 'pendiente'
