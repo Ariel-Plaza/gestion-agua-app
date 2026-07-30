@@ -210,3 +210,66 @@ def test_generar_cobros_no_corta_si_hubo_abono():
     call_command('generar_cobros', periodo='2025-01')
 
     assert not Cortes.objects.filter(socio_id=socio.pk).exists()
+
+
+@pytest.mark.django_db
+def test_generar_cobros_no_corta_si_saldo_bajo_umbral():
+    user = User.objects.create_user(username='operario', password='test1234')
+    ruta = Ruta.objects.create(codigo='G08')
+    socio = crear_socio(8, '88888888-8', ruta)
+    medidor = Medidor.objects.create(socio_id=socio, numero_medidor='MED-G08', estado_servicio='activo')
+    tarifa = Tarifa.objects.create(
+        cargo_fijo=5000, precio_m3=1000, costo_corte_reposicion=50000,
+        vigente_desde=date(2025, 1, 1), activo=True
+    )
+
+    for periodo in ['2024-11', '2024-12']:
+        lectura = Lectura.objects.create(
+            medidor=medidor, periodo=periodo, lectura_actual=0,
+            m3_consumidos=0, origen='operario', registrado_por=user
+        )
+        Cobro.objects.create(
+            socio=socio, lectura=lectura, tarifa=tarifa, periodo=periodo,
+            cargo_fijo=5000, costo_m3_consumido=0, total=5000,
+            fecha_vencimiento=date(2025, 1, 1)
+        )
+    Lectura.objects.create(
+        medidor=medidor, periodo='2025-01', lectura_actual=0,
+        m3_consumidos=0, origen='operario', registrado_por=user
+    )
+
+    call_command('generar_cobros', periodo='2025-01')
+
+    # 5000 x 3 = 15000, por debajo del umbral de 18000: no debe cortar
+    assert not Cortes.objects.filter(socio_id=socio.pk).exists()
+
+
+@pytest.mark.django_db
+def test_generar_cobros_numero_boleta_reinicia_en_anno_nuevo():
+    user = User.objects.create_user(username='operario', password='test1234')
+    ruta = Ruta.objects.create(codigo='G09')
+    crear_tarifa()
+
+    socio_dic = crear_socio(9, '90909090-3', ruta)
+    medidor_dic = Medidor.objects.create(socio_id=socio_dic, numero_medidor='MED-G09-D', estado_servicio='activo')
+    Lectura.objects.create(
+        medidor=medidor_dic, periodo='2024-12', lectura_actual=5,
+        m3_consumidos=5, origen='operario', registrado_por=user
+    )
+
+    call_command('generar_cobros', periodo='2024-12')
+
+    cobro_dic = Cobro.objects.get(socio_id=socio_dic.pk, periodo='2024-12')
+    assert cobro_dic.numero_boleta == '2024-00001'
+
+    socio_ene = crear_socio(19, '19191919-3', ruta)
+    medidor_ene = Medidor.objects.create(socio_id=socio_ene, numero_medidor='MED-G09-E', estado_servicio='activo')
+    Lectura.objects.create(
+        medidor=medidor_ene, periodo='2025-01', lectura_actual=3,
+        m3_consumidos=3, origen='operario', registrado_por=user
+    )
+
+    call_command('generar_cobros', periodo='2025-01')
+
+    cobro_ene = Cobro.objects.get(socio_id=socio_ene.pk, periodo='2025-01')
+    assert cobro_ene.numero_boleta == '2025-00001'
