@@ -5,9 +5,31 @@ from .models import Socio, Ruta, Medidor
 from .serializer import SocioSerializer, RutaSerializer, MedidorSerializer
 
 # Normalizar el rut recibido en el formato que acepta la BD ########-# (sin puntos, sin espacios, con guion)
-# aplicar verificacion de rut valido.
 def normalizar_rut(rut):
     return rut.replace('.', '').replace(' ', '').strip().upper()
+
+
+def validar_rut(rut):
+    """Valida que el RUT chileno tenga un dígito verificador correcto.
+    Espera el RUT ya normalizado (formato ########-#)."""
+    if '-' not in rut:
+        return False
+    cuerpo, dv = rut.rsplit('-', 1)
+    if not cuerpo.isdigit():
+        return False
+    suma = 0
+    multiplicador = 2
+    for digito in reversed(cuerpo):
+        suma += int(digito) * multiplicador
+        multiplicador = multiplicador + 1 if multiplicador < 7 else 2
+    resto = 11 - (suma % 11)
+    if resto == 11:
+        dv_esperado = '0'
+    elif resto == 10:
+        dv_esperado = 'K'
+    else:
+        dv_esperado = str(resto)
+    return dv == dv_esperado
 
 # -- Socios
 class AgregarSocio(APIView):
@@ -34,8 +56,13 @@ class ObtenerSocioNombreApellidos(APIView):
         # busqueda por rut
         rut = request.query_params.get('rut')
         if rut:
+            rut_normalizado = normalizar_rut(rut)
+            if not validar_rut(rut_normalizado):
+                return Response(
+                    {'error': 'El RUT ingresado no es válido'},
+                    status=status.HTTP_400_BAD_REQUEST)
             socio = Socio.objects.filter(
-                rut = normalizar_rut(rut), activo=True)
+                rut = rut_normalizado, activo=True)
             if not socio.exists():
                 return Response(
                     {'error': 'no existe un socio con el RUT buscado'},
@@ -142,9 +169,14 @@ class ListaMedidores(APIView):
         medidores = Medidor.objects.exclude(estado_servicio='retirado')
         
         rut = request.query_params.get('rut')
-        if rut: 
+        if rut:
+            rut_normalizado = normalizar_rut(rut)
+            if not validar_rut(rut_normalizado):
+                return Response(
+                    {'error': 'El RUT ingresado no es válido'},
+                    status=status.HTTP_400_BAD_REQUEST)
             try:
-                socio = Socio.objects.get(rut=normalizar_rut(rut))
+                socio = Socio.objects.get(rut=rut_normalizado)
             except Socio.DoesNotExist:
                 return Response(
                     {'error': 'no existe un socio con el RUT buscado'},
@@ -161,8 +193,13 @@ class AgregarMedidor(APIView):
         data = request.data.copy()
         rut = data.pop('rut', None)
         if rut:
+            rut_normalizado = normalizar_rut(rut)
+            if not validar_rut(rut_normalizado):
+                return Response(
+                    {'error': 'El RUT ingresado no es válido'},
+                    status=status.HTTP_400_BAD_REQUEST)
             try:
-                socio = Socio.objects.get(rut=rut)
+                socio = Socio.objects.get(rut=rut_normalizado)
                 data['socio_id'] = socio.pk
             except Socio.DoesNotExist:
                 return Response({'error': 'No existe un socio con ese RUT'}, status=status.HTTP_404_NOT_FOUND)
@@ -190,8 +227,13 @@ class ActualizarMedidor(APIView):
         data = request.data.copy()
         rut = data.pop('rut', None)
         if rut:
+            rut_normalizado = normalizar_rut(rut)
+            if not validar_rut(rut_normalizado):
+                return Response(
+                    {'error': 'El RUT ingresado no es válido'},
+                    status=status.HTTP_400_BAD_REQUEST)
             try:
-                socio = Socio.objects.get(rut=rut)
+                socio = Socio.objects.get(rut=rut_normalizado)
                 data['socio_id'] = socio.pk
             except Socio.DoesNotExist:
                 return Response({'error': 'No existe un socio con ese RUT'}, status=status.HTTP_404_NOT_FOUND)

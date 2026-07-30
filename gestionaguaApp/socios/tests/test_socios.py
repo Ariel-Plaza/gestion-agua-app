@@ -134,7 +134,7 @@ def test_agregar_medidor_resuelve_rut():
 
     ruta = Ruta.objects.create(codigo='AP010')
     socio = Socio.objects.create(
-        numero_socio=10, rut='10101010-1', nombre='Ana', apellido='Soto',
+        numero_socio=10, rut='10101010-4', nombre='Ana', apellido='Soto',
         ruta_id=ruta, referencia_direccion='Camino real', activo=True
     )
     response = client.post(
@@ -142,7 +142,7 @@ def test_agregar_medidor_resuelve_rut():
         format="json",
         data={
             "numero_medidor": "MED-100",
-            "rut": "10101010-1",
+            "rut": "10101010-4",
         },
     )
     assert response.status_code == 201, response.data
@@ -180,7 +180,7 @@ def test_actualizar_medidor_reasigna_socio_por_rut():
         ruta_id=ruta, referencia_direccion='Camino real 2', activo=True
     )
     socio_nuevo = Socio.objects.create(
-        numero_socio=12, rut='12121212-1', nombre='Marta', apellido='Diaz',
+        numero_socio=12, rut='12121212-9', nombre='Marta', apellido='Diaz',
         ruta_id=ruta, referencia_direccion='Camino real 2', activo=True
     )
     medidor = Medidor.objects.create(
@@ -190,7 +190,7 @@ def test_actualizar_medidor_reasigna_socio_por_rut():
     response = client.put(
         f"/socios/medidores/actualizar/{medidor.pk}/",
         format="json",
-        data={"rut": "12121212-1"},
+        data={"rut": "12121212-9"},
     )
     assert response.status_code == 200, response.data
     assert response.data["socio_id"] == socio_nuevo.pk
