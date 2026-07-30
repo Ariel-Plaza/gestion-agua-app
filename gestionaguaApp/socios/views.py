@@ -46,10 +46,14 @@ class AgregarSocio(APIView):
 
 class ListaSocios(APIView):
     def get(self, request):
-        socios = Socio.objects.exclude(activo=False)
-        serializer = SocioSerializer(socios, many=True)
-        return Response(serializer.data)
-    # manejar el error si no recibe informacion
+        try:
+            socios = Socio.objects.exclude(activo=False)
+            serializer = SocioSerializer(socios, many=True)
+            return Response(serializer.data)
+        except Exception:
+            return Response(
+                {'error': 'No se pudo obtener el listado de socios'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ObtenerSocioNombreApellidos(APIView):
     def get(self,request):
