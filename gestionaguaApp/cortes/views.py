@@ -10,7 +10,7 @@ class RegistrarCorte(APIView):
     def post(self, request):
         data = request.data.copy()
         data['operador_corte'] = request.user.id
-        serializer = CorteSerializer(data=request.data)
+        serializer = CorteSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
