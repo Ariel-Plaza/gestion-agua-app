@@ -11,7 +11,7 @@ urlpatterns = [
 
     # Cobro
     path('cobros/', GenerarCobro.as_view(), name='generar-cobro'),
-    path('cobros/socio/<str:rut>/', ListaCobrosPorSocio.as_view(), name='lista-cobros-socio'),
+    path('cobros/socio/', ListaCobrosPorSocio.as_view(), name='lista-cobros-socio'),
     path('cobros/<int:pk>/', DetalleCobro.as_view(), name='detalle-cobro'),
     path('cobros/<int:pk>/cupon/', CuponCobro.as_view(), name='cupon-cobro'),
 

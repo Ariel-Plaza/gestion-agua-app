@@ -5,6 +5,7 @@ from weasyprint import HTML
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from usuarios.permissions import EsPersonalDelComite
 from .models import Tarifa, Cobro, Pago
 from socios.models import Socio
 from cortes.models import Cortes
@@ -19,6 +20,8 @@ def formato_clp(valor):
 # ─── TARIFA ───────────────────────────────────────────────────────────────────
 
 class AgregarTarifa(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def post(self, request):
         serializer = TarifaSerializer(data=request.data)
         if serializer.is_valid():
@@ -47,6 +50,8 @@ class MostrarTarifaPorAnno(APIView):
 
 
 class ActualizarTarifa(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def patch(self, request, pk):
         try:
             tarifa = Tarifa.objects.get(pk=pk)
@@ -70,6 +75,8 @@ class ActualizarTarifa(APIView):
 
 
 class EliminarTarifa(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def delete(self, request, pk):
         try:
             tarifa = Tarifa.objects.get(pk=pk)
@@ -85,6 +92,8 @@ class EliminarTarifa(APIView):
 # ─── COBRO ────────────────────────────────────────────────────────────────────
 
 class GenerarCobro(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def post(self, request):
         # El total se calcula en la vista para no depender del cliente
         # Fórmula: cargo_fijo + costo_m3_consumido + corte_reposicion (si aplica)
@@ -103,11 +112,22 @@ class GenerarCobro(APIView):
 
 
 class ListaCobrosPorSocio(APIView):
-    def get(self, request, rut):
-        try:
-            socio = Socio.objects.get(rut=rut)
-        except Socio.DoesNotExist:
-            return Response({'error': 'Socio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request):
+        # Un socio solo ve sus propios cobros, sin importar el rut que mande
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            socio = request.user.socio
+        else:
+            rut = request.query_params.get('rut')
+            if not rut:
+                return Response({'error': 'Debes indicar el RUT del socio'}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                socio = Socio.objects.get(rut=rut)
+            except Socio.DoesNotExist:
+                return Response({'error': 'Socio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
         # Si el socio existe pero no tiene cobros, se devuelve lista vacía
         # 404 sería incorrecto: el recurso (socio) existe, solo no tiene cobros aún
@@ -153,6 +173,8 @@ class CuponCobro(APIView):
 # ─── PAGO ─────────────────────────────────────────────────────────────────────
 
 class RegistrarPago(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def post(self, request):
         # El pago se registra contra un Cobro específico
         # La lógica FIFO (pagar el cobro más antiguo primero) se aplica

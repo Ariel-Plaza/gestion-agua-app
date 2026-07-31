@@ -16,6 +16,8 @@ User = get_user_model()
 def test_crear_tarifa():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.post('/boletas/tarifas/agregar/', {
@@ -118,6 +120,8 @@ def test_actualizar_tarifa_con_cobros_bloqueado():
 def test_eliminar_tarifa():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     tarifa = Tarifa.objects.create(
@@ -136,6 +140,8 @@ def test_eliminar_tarifa():
 def test_generar_cobro():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -169,6 +175,8 @@ def test_generar_cobro():
 def test_cobro_duplicado_bloqueado():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -206,6 +214,8 @@ def test_cobro_duplicado_bloqueado():
 def test_listar_cobros_por_socio():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -213,7 +223,7 @@ def test_listar_cobros_por_socio():
         numero_socio=1, rut='12345678-9', nombre='Juan', apellido='Pérez',
         ruta_id=ruta, referencia_direccion='Casa azul', activo=True
     )
-    response = client.get(f'/boletas/cobros/socio/{socio.rut}/')
+    response = client.get(f'/boletas/cobros/socio/?rut={socio.rut}')
     assert response.status_code == 200
     assert response.data == []
 
@@ -329,6 +339,8 @@ def test_estado_cobro_pagado():
 def test_registrar_pago():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -447,6 +459,8 @@ def test_total_pagado():
 def test_pago_que_salda_deuda_repone_corte_activo():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -489,6 +503,8 @@ def test_pago_que_salda_deuda_repone_corte_activo():
 def test_abono_parcial_no_repone_corte():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -530,6 +546,8 @@ def test_abono_parcial_no_repone_corte():
 def test_pago_sin_corte_asociado_no_rompe():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
