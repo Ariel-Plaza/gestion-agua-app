@@ -1,12 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from usuarios.permissions import EsPersonalDelComite
 from .models import Cortes
 from socios.models import Socio
 from .serializers import CorteSerializer, CorteReposicionSerializer
 
 
 class RegistrarCorte(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def post(self, request):
         data = request.data.copy()
         data['operador_corte'] = request.user.id
@@ -18,6 +21,8 @@ class RegistrarCorte(APIView):
 
 
 class RegistrarReposicion(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def patch(self, request, pk):
         try:
             corte = Cortes.objects.get(pk=pk)
@@ -39,11 +44,22 @@ class RegistrarReposicion(APIView):
 
 
 class ListaCortesPorSocio(APIView):
-    def get(self, request, rut):
-        try:
-            socio = Socio.objects.get(rut=rut)
-        except Socio.DoesNotExist:
-            return Response({'error': 'Socio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request):
+        # Un socio solo ve sus propios cortes, sin importar el rut que mande
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            socio = request.user.socio
+        else:
+            rut = request.query_params.get('rut')
+            if not rut:
+                return Response({'error': 'Debes indicar el RUT del socio'}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                socio = Socio.objects.get(rut=rut)
+            except Socio.DoesNotExist:
+                return Response({'error': 'Socio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
         # Si el socio existe pero no tiene cortes, se devuelve lista vacía
         cortes = Cortes.objects.filter(socio=socio)

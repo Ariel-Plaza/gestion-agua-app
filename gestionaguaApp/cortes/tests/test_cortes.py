@@ -14,6 +14,8 @@ User = get_user_model()
 def test_registrar_corte():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -51,6 +53,8 @@ def test_registrar_corte():
 def test_registrar_reposicion():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -88,6 +92,8 @@ def test_registrar_reposicion():
 def test_reposicion_ya_repuesta():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -124,6 +130,8 @@ def test_reposicion_ya_repuesta():
 def test_listar_cortes_por_socio():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='R01')
@@ -131,7 +139,7 @@ def test_listar_cortes_por_socio():
         numero_socio=1, rut='12345678-9', nombre='Juan', apellido='Pérez',
         ruta_id=ruta, referencia_direccion='Casa azul', activo=True
     )
-    response = client.get(f'/cortes/socio/{socio.rut}/')
+    response = client.get(f'/cortes/socio/?rut={socio.rut}')
     assert response.status_code == 200
     assert response.data == []
 
