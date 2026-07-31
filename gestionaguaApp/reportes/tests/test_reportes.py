@@ -113,6 +113,8 @@ def test_calcular_deudores_excluye_socio_al_dia():
 def test_reporte_deudores_responde_pdf_valido():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='RD04')
@@ -140,6 +142,8 @@ def test_reporte_deudores_responde_pdf_valido():
 def test_reporte_deudores_sin_deudores_responde_pdf_valido():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.get('/reportes/deudores/')
@@ -155,6 +159,8 @@ def test_reporte_deudores_sin_deudores_responde_pdf_valido():
 def test_reporte_recaudacion_sin_periodo_responde_400():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.get('/reportes/recaudacion/')
@@ -167,6 +173,8 @@ def test_reporte_recaudacion_sin_periodo_responde_400():
 def test_reporte_recaudacion_sin_cobros_no_divide_por_cero():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.get('/reportes/recaudacion/?periodo=2099-01')
@@ -180,6 +188,8 @@ def test_reporte_recaudacion_sin_cobros_no_divide_por_cero():
 def test_reporte_recaudacion_normal_responde_pdf_valido():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='RD05')

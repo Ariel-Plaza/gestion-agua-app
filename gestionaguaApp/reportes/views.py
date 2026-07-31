@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 
+from usuarios.permissions import EsPersonalDelComite
 from boletas.models import Cobro
 from cortes.models import Cortes
 
@@ -48,6 +49,8 @@ def calcular_deudores():
 
 
 class ReporteDeudores(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def get(self, request):
         filas, total_adeudado = calcular_deudores()
 
@@ -65,6 +68,8 @@ class ReporteDeudores(APIView):
 
 
 class ReporteRecaudacion(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def get(self, request):
         periodo = request.query_params.get('periodo')
         if not periodo:
