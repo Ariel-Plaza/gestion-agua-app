@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from usuarios.permissions import EsPersonalDelComite
 from .models import Lectura
 from .serializer import LecturaSerializer, LecturaUpdateSerializer
 from socios.models import Socio, Medidor
@@ -8,6 +9,8 @@ from socios.views import normalizar_rut
 
 # Create your views here.
 class AgregarLectura(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def post(self, request):
         # deserializar JSON
         # context pasamos el usuario autenticado si corresponde
@@ -25,6 +28,21 @@ class AgregarLectura(APIView):
 
 class ListaLecturas(APIView):
     def get(self, request):
+        # Un socio solo ve sus propias lecturas, sin importar el rut que mande
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            medidores = Medidor.objects.filter(socio_id=request.user.socio.pk)
+            medidor_ids = [medidor.pk for medidor in medidores]
+            lecturas = [
+                lectura for lectura in Lectura.objects.all()
+                if lectura.medidor_id in medidor_ids
+            ]
+            serializer = LecturaSerializer(lecturas, context={'request': request}, many=True)
+            return Response(serializer.data)
+
         rut = request.query_params.get('rut')
         if rut:
             try:
@@ -52,19 +70,21 @@ class ListaLecturas(APIView):
 class ObtenerLecturaPorId(APIView):
     def get(self,request,pk):
         try:
-        
-            lectura = Lectura.objects.get(id=pk)                
+
+            lectura = Lectura.objects.get(id=pk)
             serializer = LecturaSerializer(lectura)
             return Response(serializer.data)
         except Lectura.DoesNotExist:
             return Response({'error':'Lectura no encontradda'}, status=status.HTTP_404_NOT_FOUND)
 
 class ActualizarLectura(APIView):
+    permission_classes = [EsPersonalDelComite]
+
     def patch(self,request,pk):
         try:
             lectura =Lectura.objects.get(pk=pk)
             serializer = LecturaUpdateSerializer(lectura, data = request.data, partial=True)
-            
+
             if serializer.is_valid():
                 try:
                     serializer.save()
@@ -76,5 +96,5 @@ class ActualizarLectura(APIView):
                     {'error': 'los datos no son validos', 'detalles': serializer.errors},
     status=status.HTTP_400_BAD_REQUEST)
         except Lectura.DoesNotExist:
-            return Response({'error':'Lectura no encontrada'}, 
+            return Response({'error':'Lectura no encontrada'},
                             status=status.HTTP_404_NOT_FOUND)

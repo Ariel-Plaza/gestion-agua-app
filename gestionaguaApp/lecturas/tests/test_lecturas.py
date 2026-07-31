@@ -14,6 +14,8 @@ def test_create_lectura():
     client = APIClient()
     
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo="AP005")
@@ -57,6 +59,8 @@ def test_actualizar_lectura():
     client = APIClient()
     
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo="AP005")
