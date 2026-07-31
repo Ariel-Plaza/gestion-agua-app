@@ -35,6 +35,8 @@ def test_validar_rut_cuerpo_no_numerico():
 def test_buscar_socio_rut_valido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V01')
@@ -50,6 +52,8 @@ def test_buscar_socio_rut_valido():
 def test_buscar_socio_rut_invalido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.get('/socios/buscar/?rut=12345678-9')
@@ -62,6 +66,8 @@ def test_buscar_socio_rut_invalido():
 def test_agregar_socio_rut_valido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     Ruta.objects.create(codigo='V02')
@@ -77,6 +83,8 @@ def test_agregar_socio_rut_valido():
 def test_agregar_socio_rut_invalido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     Ruta.objects.create(codigo='V03')
@@ -93,6 +101,8 @@ def test_agregar_socio_rut_invalido():
 def test_actualizar_socio_rut_valido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V04')
@@ -111,6 +121,8 @@ def test_actualizar_socio_rut_valido():
 def test_actualizar_socio_rut_invalido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V05')
@@ -128,6 +140,8 @@ def test_actualizar_socio_rut_invalido():
 def test_actualizar_socio_sin_rut_no_dispara_validacion():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V06')
@@ -149,6 +163,8 @@ def test_actualizar_socio_sin_rut_no_dispara_validacion():
 def test_agregar_medidor_rut_valido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V07')
@@ -167,6 +183,8 @@ def test_agregar_medidor_rut_valido():
 def test_agregar_medidor_rut_invalido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.post('/socios/medidores/agregar/', format='json', data={
@@ -181,6 +199,8 @@ def test_agregar_medidor_rut_invalido():
 def test_actualizar_medidor_rut_valido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V09')
@@ -206,6 +226,8 @@ def test_actualizar_medidor_rut_valido():
 def test_actualizar_medidor_rut_invalido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V10')
@@ -228,6 +250,8 @@ def test_actualizar_medidor_rut_invalido():
 def test_lista_medidores_rut_valido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='V11')
@@ -245,6 +269,8 @@ def test_lista_medidores_rut_valido():
 def test_lista_medidores_rut_invalido():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.get('/socios/medidores/?rut=12345678-9')

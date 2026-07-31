@@ -14,6 +14,8 @@ def test_create_socio():
 
     # Autenticacion
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     Ruta.objects.create(codigo="AP005")
@@ -44,7 +46,7 @@ def test_get_socios():
     # Autenticacion
     user = User.objects.create_user(username='test', password='test1234')
     client.force_authenticate(user=user)
-    
+
     response = client.get("/socios/")
     assert response.status_code == 200
 
@@ -52,11 +54,13 @@ def test_get_socios():
 @pytest.mark.django_db
 def test_update_socio():
     client = APIClient()
-    
+
     # Autenticacion
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
-    
+
     Ruta.objects.create(codigo="AP002")
     response = client.post(
         "/socios/agregar/",
@@ -78,7 +82,7 @@ def test_update_socio():
 
     socio_id = response.data.get("id") or response.data.get("numero_socio")
     print(f"✓ Socio creado: ID {socio_id}")
-    
+
     response = client.put(
         f"/socios/actualizar/{socio_id}/",
         format="json",
@@ -88,15 +92,17 @@ def test_update_socio():
     )
     assert response.status_code == 200
 
-#Test eliminar socio 
+#Test eliminar socio
 @pytest.mark.django_db
 def test_delete_socio():
     client = APIClient()
-    
+
     # Autenticacion
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
-    
+
     Ruta.objects.create(codigo="AP001")
     response = client.post(
         "/socios/agregar/",
@@ -130,6 +136,8 @@ def test_delete_socio():
 def test_agregar_medidor_resuelve_rut():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='AP010')
@@ -154,6 +162,8 @@ def test_agregar_medidor_resuelve_rut():
 def test_agregar_medidor_rut_inexistente():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     response = client.post(
@@ -172,6 +182,8 @@ def test_agregar_medidor_rut_inexistente():
 def test_actualizar_medidor_reasigna_socio_por_rut():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='AP011')
@@ -201,6 +213,8 @@ def test_actualizar_medidor_reasigna_socio_por_rut():
 def test_actualizar_medidor_sin_rut_mantiene_socio():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='AP012')
@@ -227,6 +241,8 @@ def test_actualizar_medidor_sin_rut_mantiene_socio():
 def test_actualizar_medidor_rut_inexistente():
     client = APIClient()
     user = User.objects.create_user(username='test', password='test1234')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='AP013')
