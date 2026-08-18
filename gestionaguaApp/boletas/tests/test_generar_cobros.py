@@ -1,5 +1,8 @@
 import pytest
 from datetime import date
+from unittest.mock import patch
+from django.conf import settings
+from django.core import mail
 from django.core.management import call_command
 from django.contrib.auth import get_user_model
 from socios.models import Ruta, Socio, Medidor
@@ -273,3 +276,22 @@ def test_generar_cobros_numero_boleta_reinicia_en_anno_nuevo():
 
     cobro_ene = Cobro.objects.get(socio_id=socio_ene.pk, periodo='2025-01')
     assert cobro_ene.numero_boleta == '2025-00001'
+
+
+@pytest.mark.django_db
+def test_generar_cobros_alerta_por_correo_si_falla():
+    # Si el comando falla a mitad de camino, se debe avisar por correo al
+    # administrador y la excepción debe seguir propagándose para que el cron
+    # (Oracle Cloud) reporte el fallo por su propio exit code.
+    with patch(
+        'boletas.management.commands.generar_cobros.Command._generar',
+        side_effect=RuntimeError('fallo simulado'),
+    ):
+        with pytest.raises(RuntimeError):
+            call_command('generar_cobros', periodo='2025-01')
+
+    assert len(mail.outbox) == 1
+    enviado = mail.outbox[0]
+    assert enviado.to == [settings.ADMIN_ALERT_EMAIL]
+    assert '2025-01' in enviado.subject
+    assert 'fallo simulado' in enviado.body

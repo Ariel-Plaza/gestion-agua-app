@@ -15,6 +15,9 @@ de servicio. Esto se hace fuera de Railway porque Railway no expone acceso a
   entorno `DB_*` configuradas en el `.env` de ese servidor, igual que en
   Railway).
 - `DJANGO_SETTINGS_MODULE=gestionaguaApp.settings.production`.
+- Variables `EMAIL_HOST_USER` y `EMAIL_HOST_PASSWORD` en el `.env` del
+  servidor para las alertas por correo si el comando falla (ver
+  [Alertas por correo si el comando falla](#alertas-por-correo-si-el-comando-falla)).
 
 ## 1. Probar el comando manualmente primero
 
@@ -102,6 +105,42 @@ Generando cobros para el período 2026-07...
 Cobros generados: 950. Omitidos: 3.
 Cortes generados: 4.
 ```
+
+## Alertas por correo si el comando falla
+
+Además del log por redirección de shell (`/var/log/gestionagua/generar_cobros.log`),
+el comando escribe su propio log estructurado (con timestamp y nivel) en
+`gestionaguaApp/logs/generar_cobros.log`, dentro del repo, independientemente
+de cómo se invoque.
+
+Si `generar_cobros` lanza una excepción a mitad de camino, además de quedar
+registrada en ambos logs, se envía un correo a `ADMIN_ALERT_EMAIL` (por
+defecto `arielplazasalinas@gmail.com`, configurable por variable de entorno)
+con el traceback completo, y el comando termina con exit code distinto de
+cero — así cron también deja constancia del fallo por su propio mecanismo.
+
+El envío usa SMTP configurado por variables de entorno en el `.env` de
+producción:
+
+```env
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=cuenta-real-del-comite@gmail.com
+EMAIL_HOST_PASSWORD=contraseña-de-aplicación-de-gmail
+DEFAULT_FROM_EMAIL=cuenta-real-del-comite@gmail.com
+ADMIN_ALERT_EMAIL=correo-a-quien-avisar@gmail.com
+```
+
+> `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` quedaron con un placeholder en
+> `settings/production.py` porque todavía no existe una cuenta de Gmail real
+> asignada a esto. Antes de depender de esta alerta en producción, genera una
+> [contraseña de aplicación](https://myaccount.google.com/apppasswords) en la
+> cuenta que se vaya a usar para enviar y configura las variables reales en el
+> `.env` del servidor Oracle — mientras tanto, el intento de envío fallará
+> (credenciales inválidas), quedará registrado en el log, pero no llegará el
+> correo. Esto no afecta la generación de cobros en sí ni oculta el error
+> original: el comando sigue terminando con código de error igual.
 
 ## Notas
 

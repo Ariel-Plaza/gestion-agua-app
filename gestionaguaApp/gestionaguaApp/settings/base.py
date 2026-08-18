@@ -3,6 +3,9 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -85,3 +88,36 @@ REST_FRAMEWORK = {
 }
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Correo de contacto para las alertas del cron `generar_cobros` cuando falla
+ADMIN_ALERT_EMAIL = config('ADMIN_ALERT_EMAIL', default='arielplazasalinas@gmail.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='cron.gestionagua@gmail.com')
+
+# En desarrollo los correos se imprimen en consola; producción define su propio backend SMTP
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'con_fecha': {
+            'format': '{asctime} [{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'generar_cobros_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': LOG_DIR / 'generar_cobros.log',
+            'formatter': 'con_fecha',
+        },
+    },
+    'loggers': {
+        'generar_cobros': {
+            'handlers': ['generar_cobros_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

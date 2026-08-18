@@ -1,6 +1,10 @@
 import calendar
+import logging
+import traceback
 from datetime import date
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 
@@ -9,6 +13,8 @@ from lecturas.models import Lectura
 from usuarios.models import Usuario
 from boletas.models import Tarifa, Cobro
 from cortes.models import Cortes
+
+logger = logging.getLogger('generar_cobros')
 
 UMBRAL_CORTE = 18000
 MESES_CONSECUTIVOS_CORTE = 3
@@ -56,6 +62,32 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         periodo = options['periodo'] or periodo_actual()
+        logger.info('Inicio generar_cobros — período %s', periodo)
+        try:
+            self._generar(periodo)
+        except Exception as exc:
+            logger.exception('generar_cobros falló para el período %s', periodo)
+            self._alertar_falla(periodo, exc)
+            raise
+        logger.info('Fin generar_cobros — período %s', periodo)
+
+    def _alertar_falla(self, periodo, exc):
+        try:
+            send_mail(
+                subject=f'[GestionAgua] Falló generar_cobros ({periodo})',
+                message=(
+                    f'El comando generar_cobros falló para el período {periodo}.\n\n'
+                    f'{traceback.format_exc()}'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.ADMIN_ALERT_EMAIL],
+                fail_silently=False,
+            )
+        except Exception:
+            # No dejar que un problema de envío de correo oculte el error original
+            logger.exception('No se pudo enviar el correo de alerta de generar_cobros')
+
+    def _generar(self, periodo):
         self.stdout.write(f'Generando cobros para el período {periodo}...')
 
         operador_sistema = self.obtener_operador_sistema()
@@ -133,9 +165,11 @@ class Command(BaseCommand):
             cobros_generados += 1
 
         self.stdout.write(f'Cobros generados: {cobros_generados}. Omitidos: {cobros_omitidos}.')
+        logger.info('Cobros generados: %d. Omitidos: %d.', cobros_generados, cobros_omitidos)
 
         cortes_generados = self.evaluar_cortes(operador_sistema)
         self.stdout.write(f'Cortes generados: {cortes_generados}.')
+        logger.info('Cortes generados: %d.', cortes_generados)
 
     def obtener_operador_sistema(self):
         operador, creado = Usuario.objects.get_or_create(

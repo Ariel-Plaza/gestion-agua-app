@@ -370,3 +370,14 @@ pytest --cov=. --cov-report=term-missing
 | `DB_HOST` | Host de PostgreSQL | `db.servidor.cl` |
 | `DB_PORT` | Puerto de PostgreSQL | `5432` |
 | `ALLOWED_HOSTS` | Hosts permitidos (separados por coma) | `tudominio.cl,www.tudominio.cl` |
+| `EMAIL_HOST` | Servidor SMTP para las alertas del cron `generar_cobros` | `smtp.gmail.com` |
+| `EMAIL_PORT` | Puerto SMTP | `587` |
+| `EMAIL_USE_TLS` | Usar TLS | `True` |
+| `EMAIL_HOST_USER` | Cuenta que envía las alertas | `cuenta-real@gmail.com` |
+| `EMAIL_HOST_PASSWORD` | Contraseña de aplicación de esa cuenta | — |
+| `DEFAULT_FROM_EMAIL` | Remitente de los correos | igual a `EMAIL_HOST_USER` |
+| `ADMIN_ALERT_EMAIL` | A quién avisar si falla `generar_cobros` | `arielplazasalinas@gmail.com` |
+
+> Ver [CRON_GENERAR_COBROS.md](CRON_GENERAR_COBROS.md) para el detalle de las
+> alertas por correo y por qué `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` siguen
+> con un placeholder hasta que exista una cuenta de Gmail real asignada.
