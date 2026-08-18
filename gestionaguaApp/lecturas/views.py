@@ -70,12 +70,23 @@ class ListaLecturas(APIView):
 class ObtenerLecturaPorId(APIView):
     def get(self,request,pk):
         try:
-
             lectura = Lectura.objects.get(id=pk)
-            serializer = LecturaSerializer(lectura)
-            return Response(serializer.data)
         except Lectura.DoesNotExist:
             return Response({'error':'Lectura no encontradda'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Un socio solo puede ver sus propias lecturas
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            if lectura.medidor.socio_id != request.user.socio_id:
+                return Response(
+                    {'error': 'No tienes permiso para ver esta lectura'},
+                    status=status.HTTP_403_FORBIDDEN)
+
+        serializer = LecturaSerializer(lectura)
+        return Response(serializer.data)
 
 class ActualizarLectura(APIView):
     permission_classes = [EsPersonalDelComite]

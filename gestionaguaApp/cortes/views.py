@@ -71,7 +71,19 @@ class DetalleCorte(APIView):
     def get(self, request, pk):
         try:
             corte = Cortes.objects.get(pk=pk)
-            serializer = CorteSerializer(corte)
-            return Response(serializer.data)
         except Cortes.DoesNotExist:
             return Response({'error': 'Corte no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Un socio solo puede ver el detalle de sus propios cortes
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            if corte.socio_id != request.user.socio_id:
+                return Response(
+                    {'error': 'No tienes permiso para ver este corte'},
+                    status=status.HTTP_403_FORBIDDEN)
+
+        serializer = CorteSerializer(corte)
+        return Response(serializer.data)

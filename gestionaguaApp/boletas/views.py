@@ -140,10 +140,22 @@ class DetalleCobro(APIView):
     def get(self, request, pk):
         try:
             cobro = Cobro.objects.get(pk=pk)
-            serializer = CobroSerializer(cobro)
-            return Response(serializer.data)
         except Cobro.DoesNotExist:
             return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Un socio solo puede ver el detalle de sus propios cobros
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            if cobro.socio_id != request.user.socio_id:
+                return Response(
+                    {'error': 'No tienes permiso para ver este cobro'},
+                    status=status.HTTP_403_FORBIDDEN)
+
+        serializer = CobroSerializer(cobro)
+        return Response(serializer.data)
 
 
 class CuponCobro(APIView):
@@ -152,6 +164,17 @@ class CuponCobro(APIView):
             cobro = Cobro.objects.get(pk=pk)
         except Cobro.DoesNotExist:
             return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Un socio solo puede descargar el cupón de sus propios cobros
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            if cobro.socio_id != request.user.socio_id:
+                return Response(
+                    {'error': 'No tienes permiso para ver este cobro'},
+                    status=status.HTTP_403_FORBIDDEN)
 
         contexto = {
             'cobro': cobro,
@@ -202,6 +225,17 @@ class ListaPagosPorCobro(APIView):
             cobro = Cobro.objects.get(pk=cobro_id)
         except Cobro.DoesNotExist:
             return Response({'error': 'Cobro no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Un socio solo puede ver los pagos de sus propios cobros
+        if request.user.rol == 'socio':
+            if not request.user.socio:
+                return Response(
+                    {'error': 'Tu usuario no está vinculado a un socio'},
+                    status=status.HTTP_403_FORBIDDEN)
+            if cobro.socio_id != request.user.socio_id:
+                return Response(
+                    {'error': 'No tienes permiso para ver los pagos de este cobro'},
+                    status=status.HTTP_403_FORBIDDEN)
 
         # Si el cobro existe pero no tiene pagos, se devuelve lista vacía
         # Un cobro recién generado válido puede no tener pagos aún

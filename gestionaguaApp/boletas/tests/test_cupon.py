@@ -13,6 +13,8 @@ User = get_user_model()
 def test_cupon_responde_pdf_valido():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='C01')
@@ -46,6 +48,8 @@ def test_cupon_responde_pdf_valido():
 def test_cupon_cobro_con_reposicion():
     client = APIClient()
     user = User.objects.create_user(username='admin', password='admin123')
+    user.rol = 'administrador'
+    user.save()
     client.force_authenticate(user=user)
 
     ruta = Ruta.objects.create(codigo='C02')
