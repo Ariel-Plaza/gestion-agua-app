@@ -23,7 +23,7 @@ API REST para la gestión de agua potable rural. Permite administrar socios, med
 | `lecturas` | Registro de lecturas de consumo por período |
 | `boletas` | Tarifas, generación de cobros y registro de pagos |
 | `cortes` | Registro de cortes de servicio y reposición |
-| `reportes` | Reportes (en desarrollo) |
+| `reportes` | Reportes en PDF de deudores/cortes activos y de recaudación mensual |
 
 ---
 
@@ -311,6 +311,23 @@ gestionaguaProject/
     ├── cortes/                 # Cortes de servicio y reposición
     └── reportes/               # (en desarrollo)
 ```
+
+---
+
+## Limitaciones conocidas
+
+### Interés por mora (IPC) no implementado
+
+El modelo `Cobro` tiene un campo `interes_mora` reservado, pero **no se calcula
+todavía**. Las boletas generadas no incluyen recargo por mora, sin importar
+cuánto atraso acumule un cobro — solo reflejan `cargo_fijo + costo_m3_consumido
++ corte_reposicion`.
+
+Se decidió postergar esto a una fase 2 conscientemente: falta definir con el
+comité de dónde sale el valor del IPC mensual a aplicar (carga manual del
+administrador, integración con una fuente oficial, u otro criterio) y la
+fórmula exacta de cálculo sobre el saldo pendiente. No implementar sin esa
+definición.
 
 ---
 
